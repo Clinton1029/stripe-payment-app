@@ -4,8 +4,11 @@ import { useCart } from "../hooks/use-cart";
 import Link from "next/link";
 
 export default function CartPage() {
-  const { items, removeFromCart } = useCart();
-  const total = items.reduce((sum, item) => sum + item.price, 0);
+  const { items, removeFromCart, addItem, decreaseItem } = useCart();
+  const total = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
@@ -29,6 +32,7 @@ export default function CartPage() {
                 key={item.id}
                 className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-md"
               >
+                {/* Image + Info */}
                 <div className="flex items-center space-x-4">
                   <img
                     src={item.image}
@@ -37,9 +41,35 @@ export default function CartPage() {
                   />
                   <div>
                     <h2 className="text-lg font-semibold">{item.name}</h2>
-                    <p className="text-gray-600">${item.price.toFixed(2)}</p>
+                    <p className="text-gray-600">
+                      ${item.price.toFixed(2)} each
+                    </p>
+                    <p className="text-gray-800 font-bold">
+                      Subtotal: ${(item.price * item.quantity).toFixed(2)}
+                    </p>
                   </div>
                 </div>
+
+                {/* Quantity Controls */}
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => decreaseItem(item.id)}
+                    className="bg-gray-200 w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-300"
+                  >
+                    -
+                  </button>
+
+                  <span className="text-lg font-medium">{item.quantity}</span>
+
+                  <button
+                    onClick={() => addItem(item)}
+                    className="bg-gray-200 w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-300"
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Remove Button */}
                 <button
                   onClick={() => removeFromCart(item.id)}
                   className="text-red-500 font-medium hover:underline"
