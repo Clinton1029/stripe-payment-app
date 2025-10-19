@@ -10,9 +10,10 @@ interface ProductCardProps {
     isFeatured?: boolean; // optional, in case you add trending tags later
   };
   onBuy: (product: any) => void;
+  onAddToCart: (product: any) => void; // ✅ NEW PROP ADDED
 }
 
-export default function ProductCard({ product, onBuy }: ProductCardProps) {
+export default function ProductCard({ product, onBuy, onAddToCart }: ProductCardProps) {
   return (
     <div className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-blue-300 hover:scale-[1.02]">
       
@@ -44,11 +45,20 @@ export default function ProductCard({ product, onBuy }: ProductCardProps) {
           ${product.price.toFixed(2)}
         </p>
 
+        {/* BUY NOW (Original) */}
         <button
           onClick={() => onBuy(product)}
           className="mt-4 w-full py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
         >
           Buy Now
+        </button>
+
+        {/* ✅ NEW: ADD TO CART BUTTON (Matching premium style) */}
+        <button
+          onClick={() => onAddToCart(product)}
+          className="mt-2 w-full py-3 rounded-xl font-medium text-blue-600 border border-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-95"
+        >
+          Add to Cart
         </button>
       </div>
     </div>
