@@ -39,6 +39,11 @@ export default function HomePage() {
     // Later, we’ll connect this to Stripe Checkout
   };
 
+  const handleAddToCart = (product: any) => {
+    alert(`${product.name} added to cart`);
+    // Later, we’ll push this to a cart context or state
+  };
+
   return (
     <div>
       <h1 className="text-4xl font-bold text-center mb-10">
@@ -46,7 +51,12 @@ export default function HomePage() {
       </h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {products.map((p) => (
-          <ProductCard key={p.id} product={p} onBuy={handleBuy} />
+          <ProductCard
+            key={p.id}
+            product={p}
+            onBuy={handleBuy}
+            onAddToCart={handleAddToCart} // ✅ Added this
+          />
         ))}
       </div>
     </div>
