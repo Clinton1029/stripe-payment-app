@@ -1,20 +1,52 @@
 "use client";
 
-export default function ProductCard({ product, onBuy }: any) {
+interface ProductCardProps {
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    image: string;
+    price: number;
+    isFeatured?: boolean; // optional, in case you add trending tags later
+  };
+  onBuy: (product: any) => void;
+}
+
+export default function ProductCard({ product, onBuy }: ProductCardProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-      <img
-        src={product.image}
-        alt={product.name}
-        className="w-full h-64 object-cover"
-      />
-      <div className="p-5 space-y-2">
-        <h2 className="text-xl font-semibold">{product.name}</h2>
-        <p className="text-gray-500 text-sm">{product.description}</p>
-        <p className="text-lg font-bold text-primary">${product.price}</p>
+    <div className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-blue-300 hover:scale-[1.02]">
+      
+      {/* Featured Badge (Optional, appears only if isFeatured is true) */}
+      {product.isFeatured && (
+        <span className="absolute top-4 left-4 bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow-lg z-10">
+          Featured
+        </span>
+      )}
+
+      {/* Product Image */}
+      <div className="overflow-hidden">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+        />
+      </div>
+
+      {/* Product Content */}
+      <div className="p-6 space-y-3">
+        <h2 className="text-lg font-bold text-gray-900 group-hover:text-blue-700 transition-colors">
+          {product.name}
+        </h2>
+        <p className="text-gray-500 text-sm line-clamp-2">
+          {product.description}
+        </p>
+        <p className="text-2xl font-bold text-blue-600 tracking-tight">
+          ${product.price.toFixed(2)}
+        </p>
+
         <button
           onClick={() => onBuy(product)}
-          className="mt-3 w-full bg-primary text-white py-2 rounded-xl hover:bg-blue-700"
+          className="mt-4 w-full py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
         >
           Buy Now
         </button>
