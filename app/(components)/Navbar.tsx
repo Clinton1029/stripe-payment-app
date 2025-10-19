@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
-import { useCart } from "../hooks/use-cart"; // ✅ Import Zustand cart store
+import { useCart } from "../hooks/use-cart"; // ✅ Ensure correct path
 
 export default function Navbar() {
-  const cartCount = useCart((state) => state.cartCount); // ✅ Get dynamic cart count
+  const cartCount = useCart((state) => state.cartCount); // ✅ subscribed correctly
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -24,7 +24,6 @@ export default function Navbar() {
           >
             <ShoppingCart className="w-6 h-6 hover:text-primary" />
 
-            {/* ✅ Badge updates dynamically */}
             {cartCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
                 {cartCount}
