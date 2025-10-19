@@ -32,7 +32,7 @@ export default function SuccessPage() {
           </Link>
 
           <Link
-            href="/orders"
+            href="/dashboard/orders"
             className="block w-full py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 transition-all"
           >
             View My Orders
