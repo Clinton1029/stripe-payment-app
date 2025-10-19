@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart } from "lucide-react"; // ✅ Added for cart icon
+import { ShoppingCart } from "lucide-react";
+// 🔥 Example only — replace with your actual cart state logic.
+const cartCount = 3; // Replace this with your cart state (e.g., Zustand, Context)
 
 export default function Navbar() {
   return (
@@ -14,9 +16,19 @@ export default function Navbar() {
           <Link href="/" className="hover:text-primary">Home</Link>
           <Link href="/success" className="hover:text-primary">Orders</Link>
 
-          {/* ✅ Added Cart Icon Link */}
-          <Link href="/cart" className="hover:text-primary">
-            <ShoppingCart className="w-6 h-6" />
+          {/* ✅ Cart Icon Enhanced */}
+          <Link
+            href="/cart"
+            className="relative transition-transform duration-200 hover:scale-110"
+          >
+            <ShoppingCart className="w-6 h-6 hover:text-primary" />
+
+            {/* ✅ Badge (shows only when count > 0) */}
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
+                {cartCount}
+              </span>
+            )}
           </Link>
         </div>
       </div>
