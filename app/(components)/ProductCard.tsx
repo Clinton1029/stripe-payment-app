@@ -1,5 +1,5 @@
 "use client";
-import { useCart } from "@/hooks/use-cart"; // ✅ STEP 3: Assumes you created a cart hook/store
+import { useCart } from "../hooks/use-cart"; // ✅ STEP 3: Assumes you created a cart hook/store
 
 interface ProductCardProps {
   product: {
