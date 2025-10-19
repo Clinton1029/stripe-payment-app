@@ -1,31 +1,24 @@
 "use client";
+
 import Link from "next/link";
-import { ShoppingCart } from "lucide-react"; // ✅ Icon imported
+import { ShoppingCart } from "lucide-react"; // ✅ Added for cart icon
 
 export default function Navbar() {
   return (
-    <nav className="w-full bg-white shadow-md py-4 px-6 flex justify-between items-center">
-      {/* Logo */}
-      <Link href="/" className="text-2xl font-bold text-blue-600">
-        MyStore
-      </Link>
+    <nav className="bg-white shadow-md sticky top-0 z-50">
+      <div className="container flex items-center justify-between py-4">
+        <Link href="/" className="text-2xl font-bold text-primary">
+          StripeStore
+        </Link>
+        <div className="space-x-6 flex items-center">
+          <Link href="/" className="hover:text-primary">Home</Link>
+          <Link href="/success" className="hover:text-primary">Orders</Link>
 
-      {/* Nav Links */}
-      <div className="flex space-x-6 items-center">
-        <Link href="/" className="text-gray-700 hover:text-blue-600 transition">
-          Home
-        </Link>
-        <Link href="/products" className="text-gray-700 hover:text-blue-600 transition">
-          Products
-        </Link>
-        
-        {/* ✅ Cart Icon Link */}
-        <Link
-          href="/cart"
-          className="flex items-center hover:text-blue-600 transition"
-        >
-          <ShoppingCart className="w-6 h-6" />
-        </Link>
+          {/* ✅ Added Cart Icon Link */}
+          <Link href="/cart" className="hover:text-primary">
+            <ShoppingCart className="w-6 h-6" />
+          </Link>
+        </div>
       </div>
     </nav>
   );
