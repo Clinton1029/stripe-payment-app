@@ -23,8 +23,7 @@ export const useCart = create<CartStore>((set) => ({
     })),
 
   buyNow: (product) => {
-    // Optional: redirect to checkout
-    console.log("Buying now:", product);
-    // You can redirect to Stripe or Checkout page here
+    console.log("Buy now clicked for:", product);
+    // No redirect yet, frontend only.
   },
 }));
