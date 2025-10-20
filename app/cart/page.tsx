@@ -4,11 +4,35 @@ import { useCart } from "../hooks/use-cart";
 import Link from "next/link";
 
 export default function CartPage() {
-  const { items, removeFromCart, addItem, decreaseItem } = useCart();
+  const { items, removeFromCart, addItem, decreaseItem, clearCart } = useCart();
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+
+  // ✅ Stripe Checkout handler
+  const handleCheckout = async () => {
+    if (items.length === 0) return;
+
+    try {
+      const response = await fetch("/api/payment/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        // Optional: clear cart after redirect
+        clearCart();
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error("Checkout failed:", err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
@@ -89,7 +113,7 @@ export default function CartPage() {
 
             {/* Checkout */}
             <button
-              onClick={() => console.log("Checkout clicked")}
+              onClick={handleCheckout}
               className="w-full py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
             >
               Proceed to Checkout
