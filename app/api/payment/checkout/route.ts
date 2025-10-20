@@ -1,16 +1,19 @@
 import Stripe from "stripe";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-08-16",
-});
+// ✅ Initialize Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await req.json();
-    const { items } = body; // Array of products from frontend
+    // Parse the cart items from request body
+    const { items } = await request.json();
 
-    // Map items to Stripe format
+    if (!items || items.length === 0) {
+      return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
+    }
+
+    // Map cart items to Stripe line_items
     const line_items = items.map((item: any) => ({
       price_data: {
         currency: "usd",
@@ -18,22 +21,27 @@ export async function POST(req: NextRequest) {
           name: item.name,
           images: [item.image],
         },
-        unit_amount: Math.round(item.price * 100),
+        unit_amount: Math.round(item.price * 100), // Convert dollars to cents
       },
       quantity: item.quantity,
     }));
 
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items,
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
+      success_url: `${request.headers.get("origin")}/success`,
+      cancel_url: `${request.headers.get("origin")}/cart`,
     });
 
+    // Return session URL to frontend
     return NextResponse.json({ url: session.url });
-  } catch (err: any) {
-    console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    console.error("Stripe Checkout Error:", err);
+    return NextResponse.json(
+      { error: "Checkout creation failed" },
+      { status: 500 }
+    );
   }
 }
