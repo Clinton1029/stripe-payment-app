@@ -4,7 +4,7 @@ import { useCart } from "../hooks/use-cart";
 import Link from "next/link";
 
 export default function CartPage() {
-  const { items, removeFromCart, addItem, decreaseItem, clearCart } = useCart();
+  const { items, addItem, decreaseItem, removeItem, clearCart } = useCart(); // ✅ Updated remove function
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -24,10 +24,8 @@ export default function CartPage() {
       const data = await response.json();
 
       if (data.url) {
-        // Optional: clear cart after redirect
-        clearCart();
-        // Redirect to Stripe Checkout
-        window.location.href = data.url;
+        clearCart(); // Optional: clear cart after redirect
+        window.location.href = data.url; // Redirect to Stripe
       }
     } catch (err) {
       console.error("Checkout failed:", err);
@@ -95,7 +93,7 @@ export default function CartPage() {
 
                 {/* Remove Button */}
                 <button
-                  onClick={() => removeFromCart(item.id)}
+                  onClick={() => removeItem(item.id)} // ✅ Fixed function name
                   className="text-red-500 font-medium hover:underline"
                 >
                   Remove
