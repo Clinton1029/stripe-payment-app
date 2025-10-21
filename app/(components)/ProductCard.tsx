@@ -1,6 +1,7 @@
 "use client";
 
-import { useCart } from "../hooks/use-cart"; // ✅ Ensure this is correct
+import { useCart } from "../hooks/use-cart";
+import { useRouter } from "next/navigation"; // ✅ Added
 
 interface ProductCardProps {
   product: {
@@ -9,13 +10,14 @@ interface ProductCardProps {
     description: string;
     image: string;
     price: number;
-    priceId: string; // ✅ Ensure this is coming correctly
+    priceId: string;
     isFeatured?: boolean;
   };
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
   const addItem = useCart((state) => state.addItem);
+  const router = useRouter(); // ✅ Added
 
   const handleBuyNow = async () => {
     if (!product.priceId) {
@@ -23,28 +25,18 @@ export default function ProductCard({ product }: ProductCardProps) {
       return alert("Error: This product is missing a valid payment link.");
     }
 
-    console.log("📤 Sending to Stripe API:", { priceId: product.priceId }); // ✅ Debugging log
+    console.log("✅ Redirecting to custom checkout with:", {
+      priceId: product.priceId,
+      name: product.name,
+      price: product.price,
+    });
 
-    try {
-      const response = await fetch("/api/payment/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId: product.priceId }),
-      });
-
-      const data = await response.json();
-      console.log("📩 Response from backend:", data); // ✅ Debug log
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        console.error("❌ Stripe URL not returned from backend:", data);
-        alert("Failed to start checkout. Please try again later.");
-      }
-    } catch (error) {
-      console.error("❌ Checkout failed:", error);
-      alert("Something went wrong while starting checkout.");
-    }
+    // ✅ Go to your new custom checkout page
+    router.push(
+      `/checkout?priceId=${product.priceId}&name=${encodeURIComponent(
+        product.name
+      )}&price=${product.price}`
+    );
   };
 
   return (
@@ -75,7 +67,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           ${product.price.toFixed(2)}
         </p>
 
-        {/* ✅ Buy Now (Stripe Checkout) */}
+        {/* ✅ Buy Now (redirects to checkout page) */}
         <button
           onClick={handleBuyNow}
           type="button"
