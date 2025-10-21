@@ -1,6 +1,6 @@
 "use client";
 
-import { useCart } from "../hooks/use-cart"; // ✅ Added - make sure this path is correct
+import { useCart } from "../hooks/use-cart"; // ✅ Ensure this is correct
 
 interface ProductCardProps {
   product: {
@@ -9,31 +9,41 @@ interface ProductCardProps {
     description: string;
     image: string;
     price: number;
-    priceId: string; // ✅ Ensure you pass this in from your backend/DB
+    priceId: string; // ✅ Ensure this is coming correctly
     isFeatured?: boolean;
   };
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const addItem = useCart((state) => state.addItem); // ✅ Added
+  const addItem = useCart((state) => state.addItem);
 
   const handleBuyNow = async () => {
+    if (!product.priceId) {
+      console.error("❌ Missing priceId! Check if this product has a valid Stripe priceId.");
+      return alert("Error: This product is missing a valid payment link.");
+    }
+
+    console.log("📤 Sending to Stripe API:", { priceId: product.priceId }); // ✅ Debugging log
+
     try {
       const response = await fetch("/api/payment/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId: product.priceId }), // ✅ Stripe format
+        body: JSON.stringify({ priceId: product.priceId }),
       });
 
       const data = await response.json();
+      console.log("📩 Response from backend:", data); // ✅ Debug log
 
       if (data.url) {
-        window.location.href = data.url; // ✅ Go to Stripe checkout
+        window.location.href = data.url;
       } else {
-        console.error("❌ Stripe URL not returned:", data);
+        console.error("❌ Stripe URL not returned from backend:", data);
+        alert("Failed to start checkout. Please try again later.");
       }
     } catch (error) {
       console.error("❌ Checkout failed:", error);
+      alert("Something went wrong while starting checkout.");
     }
   };
 
@@ -65,7 +75,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           ${product.price.toFixed(2)}
         </p>
 
-        {/* ✅ Buy Now (Stripe Checkout Directly) */}
+        {/* ✅ Buy Now (Stripe Checkout) */}
         <button
           onClick={handleBuyNow}
           type="button"
@@ -74,7 +84,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           Buy Now
         </button>
 
-        {/* ✅ Add to Cart (kept as is) */}
+        {/* ✅ Add to Cart */}
         <button
           onClick={() =>
             addItem({
