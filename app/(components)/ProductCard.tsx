@@ -14,7 +14,39 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const addItem = useCart((state) => state.addItem); // ✅ Zustand method
+  const { addItem, items } = useCart((state: any) => ({
+    addItem: state.addItem,
+    items: state.items,
+  }));
+
+  // ✅ Inline checkout function (uses the cart state after adding item)
+  const handleBuyNow = async () => {
+    // ✅ 1. Add item to cart first
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+    });
+
+    // ✅ 2. Call Stripe Checkout using all current cart items
+    try {
+      const response = await fetch("/api/payment/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: useCart.getState().items }), // ✅ Get fresh cart items
+      });
+
+      const data = await response.json();
+
+      // ✅ 3. Redirect to Stripe
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error("Checkout failed:", error);
+    }
+  };
 
   return (
     <div className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-blue-300 hover:scale-[1.02]">
@@ -44,24 +76,15 @@ export default function ProductCard({ product }: ProductCardProps) {
           ${product.price.toFixed(2)}
         </p>
 
-        {/* ✅ Buy Now (you can later add Stripe redirect here) */}
+        {/* ✅ Buy Now → Add item + redirect to Checkout */}
         <button
-          onClick={() => {
-            // Add temporary behavior (optional): add to cart & navigate
-            addItem({
-              id: product.id,
-              name: product.name,
-              price: product.price,
-              image: product.image,
-            });
-            // TODO: redirect to checkout here later
-          }}
+          onClick={handleBuyNow}
           className="mt-4 w-full py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
         >
           Buy Now
         </button>
 
-        {/* ✅ Add to Cart */}
+        {/* ✅ Add to Cart (unchanged) */}
         <button
           onClick={() =>
             addItem({
