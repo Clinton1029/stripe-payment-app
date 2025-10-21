@@ -1,27 +1,12 @@
 "use client";
+import { useCart } from "../store/cartStore"; // your Zustand import
+import React from "react";
 
-import { useCart } from "../hooks/use-cart"; // ✅ Make sure path is correct
+const ProductCard = ({ product }: { product: any }) => {
+  const { addItem } = useCart();
 
-interface ProductCardProps {
-  product: {
-    id: string;
-    name: string;
-    description: string;
-    image: string;
-    price: number;
-    isFeatured?: boolean;
-  };
-}
-
-export default function ProductCard({ product }: ProductCardProps) {
-  const { addItem, items } = useCart((state: any) => ({
-    addItem: state.addItem,
-    items: state.items,
-  }));
-
-  // ✅ Inline checkout function (uses the cart state after adding item)
   const handleBuyNow = async () => {
-    // ✅ 1. Add item to cart first
+    // ✅ Add item first
     addItem({
       id: product.id,
       name: product.name,
@@ -29,76 +14,43 @@ export default function ProductCard({ product }: ProductCardProps) {
       image: product.image,
     });
 
-    // ✅ 2. Call Stripe Checkout using all current cart items
+    // ✅ Immediately fetch latest cart from Zustand
+    const updatedItems = useCart.getState().items;
+
+    if (updatedItems.length === 0) return;
+
     try {
-      const response = await fetch("/api/payment/checkout", {
+      const res = await fetch("/api/payment/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: useCart.getState().items }), // ✅ Get fresh cart items
+        body: JSON.stringify({ items: updatedItems }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      // ✅ 3. Redirect to Stripe
       if (data.url) {
-        window.location.href = data.url;
+        window.location.href = data.url; // ✅ Go to Stripe Checkout
+      } else {
+        console.error("❌ Stripe URL not returned:", data);
       }
     } catch (error) {
-      console.error("Checkout failed:", error);
+      console.error("❌ Checkout failed:", error);
     }
   };
 
   return (
-    <div className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-blue-300 hover:scale-[1.02]">
-      
-      {product.isFeatured && (
-        <span className="absolute top-4 left-4 bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow-lg z-10">
-          Featured
-        </span>
-      )}
-
-      <div className="overflow-hidden">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
-        />
-      </div>
-
-      <div className="p-6 space-y-3">
-        <h2 className="text-lg font-bold text-gray-900 group-hover:text-blue-700 transition-colors">
-          {product.name}
-        </h2>
-        <p className="text-gray-500 text-sm line-clamp-2">
-          {product.description}
-        </p>
-        <p className="text-2xl font-bold text-blue-600 tracking-tight">
-          ${product.price.toFixed(2)}
-        </p>
-
-        {/* ✅ Buy Now → Add item + redirect to Checkout */}
-        <button
-          onClick={handleBuyNow}
-          className="mt-4 w-full py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
-        >
-          Buy Now
-        </button>
-
-        {/* ✅ Add to Cart (unchanged) */}
-        <button
-          onClick={() =>
-            addItem({
-              id: product.id,
-              name: product.name,
-              price: product.price,
-              image: product.image,
-            })
-          }
-          className="mt-2 w-full py-3 rounded-xl font-medium text-blue-600 border border-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-95"
-        >
-          Add to Cart
-        </button>
-      </div>
+    <div className="p-4 border rounded-md">
+      <h2>{product.name}</h2>
+      <p>${product.price}</p>
+      {/* ✅ Connect to button */}
+      <button
+        onClick={handleBuyNow}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Buy Now
+      </button>
     </div>
   );
-}
+};
+
+export default ProductCard;
