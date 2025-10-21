@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 
-// ✅ Initialize Stripe
+// ✅ Initialize Stripe with API version (recommended)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(request: Request) {
@@ -26,16 +26,22 @@ export async function POST(request: Request) {
       quantity: item.quantity,
     }));
 
-    // Create Stripe checkout session
+    // ✅ Create Stripe checkout session (with automatic tax)
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items,
       mode: "payment",
       success_url: `${request.headers.get("origin")}/success`,
       cancel_url: `${request.headers.get("origin")}/cart`,
+
+      // ✅ Enable automatic tax calculation
+      automatic_tax: { enabled: true },
+
+      // ✅ Stripe requires customer location for tax, so collect billing address
+      billing_address_collection: "required",
     });
 
-    // Return session URL to frontend
+    // ✅ Return session URL to frontend
     return NextResponse.json({ url: session.url });
   } catch (err) {
     console.error("Stripe Checkout Error:", err);
