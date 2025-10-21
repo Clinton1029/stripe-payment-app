@@ -1,4 +1,3 @@
-// app/api/payment/checkout/route.ts
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 
@@ -6,10 +5,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(request: Request) {
   try {
+    console.log("✅ Checkout API HIT");
+
     const { items } = await request.json();
+    console.log("🛒 Received items:", items);
 
     if (!items || items.length === 0) {
-      return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
+      return NextResponse.json({ error: "No items provided" }, { status: 400 });
     }
 
     const line_items = items.map((item: any) => ({
@@ -24,6 +26,8 @@ export async function POST(request: Request) {
       quantity: item.quantity,
     }));
 
+    console.log("📦 Sending to Stripe:", line_items);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items,
@@ -32,10 +36,11 @@ export async function POST(request: Request) {
       cancel_url: `${request.headers.get("origin")}/cart`,
     });
 
-    // ✅ Make sure session URL is returned
+    console.log("✅ Stripe session created:", session.url);
+
     return NextResponse.json({ url: session.url });
-  } catch (err) {
-    console.error("Stripe Checkout Error:", err);
+  } catch (error) {
+    console.error("❌ Stripe Checkout Error:", error);
     return NextResponse.json(
       { error: "Checkout creation failed" },
       { status: 500 }

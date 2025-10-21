@@ -1,12 +1,23 @@
 "use client";
-import { useCart } from "../store/cartStore"; // your Zustand import
-import React from "react";
 
-const ProductCard = ({ product }: { product: any }) => {
-  const { addItem } = useCart();
+import { useCart } from "../hooks/use-cart"; // ✅ Make sure path is correct
+
+interface ProductCardProps {
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    image: string;
+    price: number;
+    isFeatured?: boolean;
+  };
+}
+
+export default function ProductCard({ product }: ProductCardProps) {
+  const addItem = useCart((state: any) => state.addItem); // ✅ Separate selector
+  const items = useCart((state: any) => state.items);     // ✅ Separate selector
 
   const handleBuyNow = async () => {
-    // ✅ Add item first
     addItem({
       id: product.id,
       name: product.name,
@@ -14,43 +25,75 @@ const ProductCard = ({ product }: { product: any }) => {
       image: product.image,
     });
 
-    // ✅ Immediately fetch latest cart from Zustand
-    const updatedItems = useCart.getState().items;
-
-    if (updatedItems.length === 0) return;
-
     try {
-      const res = await fetch("/api/payment/checkout", {
+      const response = await fetch("/api/payment/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: updatedItems }),
+        // ✅ Use the current Zustand state directly after update
+        body: JSON.stringify({ items: useCart.getState().items }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
       if (data.url) {
-        window.location.href = data.url; // ✅ Go to Stripe Checkout
-      } else {
-        console.error("❌ Stripe URL not returned:", data);
+        window.location.href = data.url;
       }
     } catch (error) {
-      console.error("❌ Checkout failed:", error);
+      console.error("Checkout failed:", error);
     }
   };
 
   return (
-    <div className="p-4 border rounded-md">
-      <h2>{product.name}</h2>
-      <p>${product.price}</p>
-      {/* ✅ Connect to button */}
-      <button
-        onClick={handleBuyNow}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Buy Now
-      </button>
+    <div className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-blue-300 hover:scale-[1.02]">
+      
+      {product.isFeatured && (
+        <span className="absolute top-4 left-4 bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow-lg z-10">
+          Featured
+        </span>
+      )}
+
+      <div className="overflow-hidden">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+        />
+      </div>
+
+      <div className="p-6 space-y-3">
+        <h2 className="text-lg font-bold text-gray-900 group-hover:text-blue-700 transition-colors">
+          {product.name}
+        </h2>
+        <p className="text-gray-500 text-sm line-clamp-2">
+          {product.description}
+        </p>
+        <p className="text-2xl font-bold text-blue-600 tracking-tight">
+          ${product.price.toFixed(2)}
+        </p>
+
+        {/* ✅ Buy Now */}
+        <button
+          onClick={handleBuyNow}
+          className="mt-4 w-full py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
+        >
+          Buy Now
+        </button>
+
+        {/* ✅ Add to Cart */}
+        <button
+          onClick={() =>
+            addItem({
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              image: product.image,
+            })
+          }
+          className="mt-2 w-full py-3 rounded-xl font-medium text-blue-600 border border-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-95"
+        >
+          Add to Cart
+        </button>
+      </div>
     </div>
   );
-};
-
-export default ProductCard;
+}
