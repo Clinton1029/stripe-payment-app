@@ -1,6 +1,6 @@
 "use client";
 
-import { useCart } from "../hooks/use-cart"; // ✅ Make sure path is correct
+import { useCart } from "../hooks/use-cart"; // ✅ Added - make sure this path is correct
 
 interface ProductCardProps {
   product: {
@@ -9,37 +9,31 @@ interface ProductCardProps {
     description: string;
     image: string;
     price: number;
+    priceId: string; // ✅ Ensure you pass this in from your backend/DB
     isFeatured?: boolean;
   };
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const addItem = useCart((state: any) => state.addItem); // ✅ Separate selector
-  const items = useCart((state: any) => state.items);     // ✅ Separate selector
+  const addItem = useCart((state) => state.addItem); // ✅ Added
 
   const handleBuyNow = async () => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-    });
-
     try {
       const response = await fetch("/api/payment/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // ✅ Use the current Zustand state directly after update
-        body: JSON.stringify({ items: useCart.getState().items }),
+        body: JSON.stringify({ priceId: product.priceId }), // ✅ Stripe format
       });
 
       const data = await response.json();
 
       if (data.url) {
-        window.location.href = data.url;
+        window.location.href = data.url; // ✅ Go to Stripe checkout
+      } else {
+        console.error("❌ Stripe URL not returned:", data);
       }
     } catch (error) {
-      console.error("Checkout failed:", error);
+      console.error("❌ Checkout failed:", error);
     }
   };
 
@@ -71,15 +65,16 @@ export default function ProductCard({ product }: ProductCardProps) {
           ${product.price.toFixed(2)}
         </p>
 
-        {/* ✅ Buy Now */}
+        {/* ✅ Buy Now (Stripe Checkout Directly) */}
         <button
           onClick={handleBuyNow}
+          type="button"
           className="mt-4 w-full py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
         >
           Buy Now
         </button>
 
-        {/* ✅ Add to Cart */}
+        {/* ✅ Add to Cart (kept as is) */}
         <button
           onClick={() =>
             addItem({
@@ -89,6 +84,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               image: product.image,
             })
           }
+          type="button"
           className="mt-2 w-full py-3 rounded-xl font-medium text-blue-600 border border-blue-600 hover:bg-blue-50 transition-all duration-300 active:scale-95"
         >
           Add to Cart
